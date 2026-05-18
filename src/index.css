@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smart Business Manager — Design System
+   Warm, premium palette inspired by tailoring craftsmanship:
+   deep emerald accents, ivory canvas, brass highlights.
+   All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 40 33% 97%;
+    --foreground: 160 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 160 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 25% 12%;
+
+    /* Deep emerald — tailoring brand */
+    --primary: 162 47% 22%;
+    --primary-foreground: 40 33% 97%;
+    --primary-glow: 162 55% 35%;
+
+    --secondary: 40 25% 92%;
+    --secondary-foreground: 160 25% 12%;
+
+    --muted: 40 20% 94%;
+    --muted-foreground: 160 10% 38%;
+
+    /* Brass accent */
+    --accent: 38 65% 52%;
+    --accent-foreground: 160 30% 10%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 35 92% 50%;
+    --warning-foreground: 35 90% 12%;
+
+    --success: 142 60% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 40 18% 86%;
+    --input: 40 18% 86%;
+    --ring: 162 47% 22%;
+
+    --radius: 0.7rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(162 47% 22%), hsl(162 55% 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(38 65% 52%), hsl(28 70% 48%));
+    --gradient-surface: linear-gradient(180deg, hsl(40 33% 98%), hsl(40 25% 94%));
+
+    --shadow-sm: 0 1px 2px hsl(160 30% 10% / 0.06);
+    --shadow-md: 0 8px 24px -10px hsl(162 47% 22% / 0.18);
+    --shadow-lg: 0 24px 48px -16px hsl(162 47% 22% / 0.28);
+
+    --sidebar-background: 162 47% 14%;
+    --sidebar-foreground: 40 30% 92%;
+    --sidebar-primary: 38 65% 52%;
+    --sidebar-primary-foreground: 160 30% 10%;
+    --sidebar-accent: 162 40% 20%;
+    --sidebar-accent-foreground: 40 33% 97%;
+    --sidebar-border: 162 40% 20%;
+    --sidebar-ring: 38 65% 52%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 5.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 5.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 162 60% 45%;
+    --primary-foreground: 240 10% 3.9%;
+    --primary-glow: 162 70% 60%;
+    --secondary: 240 5.9% 10%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5.9% 10%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 38 75% 50%;
+    --accent-foreground: 240 10% 3.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --warning: 35 92% 50%;
+    --warning-foreground: 35 90% 12%;
+    --success: 142 60% 38%;
+    --success-foreground: 0 0% 100%;
+    --border: 240 5.9% 15%;
+    --input: 240 5.9% 15%;
+    --ring: 162 60% 45%;
+    
+    --sidebar-background: 240 10% 4.9%;
+    --sidebar-foreground: 240 5% 90%;
+    --sidebar-primary: 162 60% 45%;
+    --sidebar-primary-foreground: 240 10% 3.9%;
+    --sidebar-accent: 240 5.9% 12%;
+    --sidebar-accent-foreground: 240 5% 95%;
+    --sidebar-border: 240 5.9% 10%;
+    --sidebar-ring: 162 60% 45%;
+
+    --gradient-surface: linear-gradient(180deg, hsl(240 10% 5%), hsl(240 10% 2%));
+    --shadow-sm: 0 1px 2px hsl(240 10% 2% / 0.3);
+    --shadow-md: 0 8px 24px -10px hsl(240 10% 2% / 0.5);
+    --shadow-lg: 0 24px 48px -16px hsl(240 10% 2% / 0.8);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-accent { background: var(--gradient-accent); }
+  .bg-gradient-surface { background: var(--gradient-surface); }
+  .shadow-elegant { box-shadow: var(--shadow-md); }
+  .shadow-deep { box-shadow: var(--shadow-lg); }
+}
