@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Search, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package, Barcode } from "lucide-react";
 import { toast } from "sonner";
+import JsBarcode from "jsbarcode";
 
 interface Product {
   id: string;
@@ -19,9 +20,74 @@ interface Product {
   cost_price: number;
   quantity: number;
   low_stock_threshold: number;
+  barcode?: string;
 }
 
-const empty = { name: "", price: "", cost_price: "", quantity: "", low_stock_threshold: "5" };
+const empty = { name: "", price: "", cost_price: "", quantity: "", low_stock_threshold: "5", barcode: "" };
+
+const BarcodeRenderer = ({ value, name }: { value: string; name: string }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  
+  useEffect(() => {
+    if (svgRef.current) {
+      try {
+        JsBarcode(svgRef.current, value, {
+          format: "CODE128",
+          lineColor: "#000",
+          width: 2,
+          height: 50,
+          displayValue: true,
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [value]);
+
+  const handlePrint = () => {
+    const printContent = document.getElementById("printable-barcode-area")?.innerHTML;
+    if (printContent) {
+      const win = window.open("", "_blank");
+      win?.document.write(`
+        <html>
+          <head>
+            <title>Print Barcode - ${name}</title>
+            <style>
+              body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+                padding: 20px;
+                font-family: system-ui, sans-serif;
+              }
+              svg {
+                max-width: 100%;
+              }
+            </style>
+          </head>
+          <body onload="window.print(); window.close();">
+            <h3>${name}</h3>
+            ${printContent}
+          </body>
+        </html>
+      `);
+      win?.document.close();
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center space-y-4 p-4">
+      <div id="printable-barcode-area" className="bg-white p-4 rounded-lg border border-border">
+        <svg ref={svgRef}></svg>
+      </div>
+      <Button onClick={handlePrint} className="w-full bg-gradient-primary">
+        Print Barcode Label
+      </Button>
+    </div>
+  );
+};
 
 export default function Inventory() {
   const { isAdmin } = useAuth();
@@ -30,6 +96,7 @@ export default function Inventory() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(empty);
+  const [viewBarcodeProduct, setViewBarcodeProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     void load();
@@ -55,6 +122,7 @@ export default function Inventory() {
       cost_price: String(p.cost_price),
       quantity: String(p.quantity),
       low_stock_threshold: String(p.low_stock_threshold),
+      barcode: p.barcode ?? "",
     });
     setOpen(true);
   };
@@ -67,6 +135,7 @@ export default function Inventory() {
       cost_price: Number(form.cost_price || 0),
       quantity: Number(form.quantity),
       low_stock_threshold: Number(form.low_stock_threshold || 5),
+      barcode: form.barcode.trim() || null,
     };
     const op = editing
       ? supabase.from("products").update(payload).eq("id", editing.id)
@@ -136,6 +205,27 @@ export default function Inventory() {
                       <Input type="number" min="0" value={form.low_stock_threshold} onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })} />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Barcode (Optional)</Label>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto p-0 text-xs text-primary"
+                        onClick={() => {
+                          const num = Math.floor(100000 + Math.random() * 900000);
+                          setForm({ ...form, barcode: `SB-${num}` });
+                        }}
+                      >
+                        Generate Code
+                      </Button>
+                    </div>
+                    <Input
+                      placeholder="e.g. SB-123456 or leave empty"
+                      value={form.barcode}
+                      onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                    />
+                  </div>
                   <DialogFooter>
                     <Button type="submit">{editing ? "Save changes" : "Add product"}</Button>
                   </DialogFooter>
@@ -196,6 +286,22 @@ export default function Inventory() {
                           </TableCell>
                           {isAdmin && (
                             <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  if (p.barcode) {
+                                    setViewBarcodeProduct(p);
+                                  } else {
+                                    toast.info("This product has no barcode. Setting one now!");
+                                    openEdit(p);
+                                  }
+                                }}
+                                className={p.barcode ? "text-primary" : "text-muted-foreground opacity-50"}
+                                title={p.barcode ? "View Barcode" : "Add Barcode"}
+                              >
+                                <Barcode className="h-4 w-4" />
+                              </Button>
                               <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -213,6 +319,17 @@ export default function Inventory() {
             </div>
           </CardContent>
         </Card>
+        
+        <Dialog open={!!viewBarcodeProduct} onOpenChange={(o) => !o && setViewBarcodeProduct(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display">Product Barcode</DialogTitle>
+            </DialogHeader>
+            {viewBarcodeProduct && viewBarcodeProduct.barcode && (
+              <BarcodeRenderer value={viewBarcodeProduct.barcode} name={viewBarcodeProduct.name} />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
