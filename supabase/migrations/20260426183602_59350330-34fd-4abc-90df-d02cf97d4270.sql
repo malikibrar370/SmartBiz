@@ -133,9 +133,6 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-DECLARE
-  user_count INTEGER;
-  assigned_role public.app_role;
 BEGIN
   INSERT INTO public.profiles (id, full_name, email)
   VALUES (
@@ -144,14 +141,7 @@ BEGIN
     NEW.email
   );
 
-  SELECT COUNT(*) INTO user_count FROM public.profiles;
-  IF user_count <= 1 THEN
-    assigned_role := 'admin';
-  ELSE
-    assigned_role := 'staff';
-  END IF;
-
-  INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, assigned_role);
+  INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'admin');
   RETURN NEW;
 END;
 $$;
